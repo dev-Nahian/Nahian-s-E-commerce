@@ -1,6 +1,8 @@
-
+import { useWixClient } from "@/hooks/useWixClient";
+import { wixClientServer } from "@/lib/wixClientServer";
 import Image from "next/image";
 import Link from "next/link";
+import CatSlider from "./CatSlider";
 
 const Category = [
   {
@@ -41,33 +43,51 @@ const Category = [
   },
 ];
 
-const CategoryList = () => {
-    
+const CategoryList = async () => {
+  const wixClient = await wixClientServer();
+
+  const collection = await wixClient.collections.queryCollections().find();
+
   return (
-    <div className="mt-12 px-8 overflow-x-scroll scroll-hide">
-      <div className="flex gap-4 md:gap-8 min-w-max">
-        {Category.map((categories) => (
-          <Link
-            key={categories.id}
-            href="/list?cat=test"
-            className="flex flex-col flex-shrink-0 w-full sm:w-1/2 lg:w-1/4 xl:w-1/6 transition-all ease-linear duration-300 hover:scale-[102%]"
-          >
-            <div className="relative bg-slate-100 w-full h-96">
-              <Image
-                src={categories.image}
-                alt=""
-                fill
-                sizes="20vw"
-                className="object-cover"
-              />
-            </div>
-            <h1 className="mt-8 font-light text-xl tracking-wide">
-              {categories.category}
-            </h1>
-          </Link>
-        ))}
+    <>
+      <div className="mt-12 px-8 overflow-x-scroll scroll-hide">
+        {/* <div className="flex gap-4 md:gap-8 min-w-[100%] cursor-grabbing">
+          {collection?.items.map((categories) => (
+            <Link
+              key={categories._id}
+              href={`/list?cat=${categories.slug}`}
+              className="flex flex-col flex-shrink-0 w-full sm:w-1/2 lg:w-1/4 xl:w-1/6 transition-all ease-linear duration-300 hover:scale-[102%]"
+            >
+              <div className="relative bg-slate-100 w-full h-96">
+                <Image
+                  src={categories.media?.mainMedia?.image?.url || "cat.png"}
+                  alt=""
+                  fill
+                  sizes="20vw"
+                  className="object-cover"
+                />
+              </div>
+              <h1 className="mt-8 font-light text-xl tracking-wide">
+                {categories?.name}
+              </h1>
+            </Link>
+          ))}
+        </div> */}
+
+        <CatSlider
+          collection={{
+            items: collection.items
+              .filter((item) => typeof item._id === "string" && typeof item.slug === "string")
+              .map((item) => ({
+                ...item,
+                _id: item._id as string,
+                slug: item.slug as string,
+                name: typeof item.name === "string" ? item.name : "Unnamed Category",
+              })),
+          }}
+        />
       </div>
-    </div>
+    </>
   );
 };
 

@@ -2,6 +2,7 @@ import { wixClientServer } from "@/lib/wixClientServer";
 import { products } from "@wix/stores";
 import Image from "next/image";
 import Link from "next/link";
+import DOMPurify from "isomorphic-dompurify";
 
 // const featureProduct = [
 //   {
@@ -51,26 +52,24 @@ const PRODUCT_PER_PAGE = 20;
 const ProductList = async ({
   categoryId,
   limit,
+  searchParams,
 }: {
   categoryId: string;
   limit?: number;
+  searchParams?: any;
 }) => {
+  if (!categoryId) {
+    console.warn("Missing categoryId. Returning empty product list.");
+    return <div>No category selected.</div>;
+  }
 
+  const wixClient = await wixClientServer();
 
-    
-if (!categoryId) {
-  console.warn("Missing categoryId. Returning empty product list.");
-  return <div>No category selected.</div>;
-}
-
-
-const wixClient = await wixClientServer();
-
-const res = await wixClient.products
-  .queryProducts()
-  .hasSome("collectionIds", [categoryId])
-  .limit(limit || PRODUCT_PER_PAGE)
-  .find();
+  const res = await wixClient.products
+    .queryProducts()
+    .hasSome("collectionIds", [categoryId])
+    .limit(limit || PRODUCT_PER_PAGE)
+    .find();
 
   return (
     <div className="mt-12 flex gap-x-8 gap-y-16 justify-between flex-wrap">
@@ -105,11 +104,16 @@ const res = await wixClient.products
           </div>
 
           {product.additionalInfoSections && (
-            <div className="text-sm text-gray-500" dangerouslySetInnerHTML={{__html}}>
-              {product.additionalInfoSections?.find(
-                (section: any) => section.title === "Description"
-              )?.description || ""}
-            </div>
+            <div
+              className="text-sm text-gray-500"
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(
+                  product.additionalInfoSections.find(
+                    (section: any) => section.title === "Description"
+                  )?.description || ""
+                ),
+              }}
+            />
           )}
 
           <button className="rounded-2xl ring-1 ring-nahian text-nahian w-max py-2 px-4 text-xs hover:bg-nahian hover:text-white">
