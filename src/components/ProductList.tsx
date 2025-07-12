@@ -18,10 +18,9 @@ const ProductList = async ({
 }) => {
   const wixClient = await wixClientServer();
 
-  const productQuery = wixClient.products
+  let productQuery = wixClient.products
     .queryProducts()
     .startsWith("name", searchParams?.name || "")
-    .eq("collectionIds", categoryId)
     .hasSome(
       "productType",
       searchParams?.type ? [searchParams.type] : ["physical", "digital"]
@@ -34,16 +33,21 @@ const ProductList = async ({
         ? parseInt(searchParams.page) * (limit || PRODUCT_PER_PAGE)
         : 0
     );
-  // .find();
+
+  // ✅ Apply collection filter only if categoryId exists
+  if (categoryId) {
+    productQuery = productQuery.eq("collectionIds", categoryId);
+  }
 
   if (searchParams?.sort) {
     const [sortType, sortBy] = searchParams.sort.split(" ");
 
     if (sortType === "asc") {
-      productQuery.ascending(sortBy);
+      productQuery = productQuery.ascending(sortBy);
     }
+
     if (sortType === "desc") {
-      productQuery.descending(sortBy);
+      productQuery = productQuery.descending(sortBy);
     }
   }
 
@@ -63,11 +67,11 @@ const ProductList = async ({
               alt=""
               fill
               sizes="25vw"
-              className="absolute object-cover rounded-md z-10 hover:opacity-0 transition-opacity easy duration-500"
+              className="absolute object-cover rounded-md z-10 hover:opacity-0 transition-opacity ease duration-500"
             />
-            {product.media?.items && (
+            {product.media?.items?.[1] && (
               <Image
-                src={product.media?.items[1]?.image?.url || "/product.png"}
+                src={product.media.items[1].image?.url || "/product.png"}
                 alt=""
                 fill
                 sizes="25vw"
@@ -75,10 +79,12 @@ const ProductList = async ({
               />
             )}
           </div>
+
           <div className="flex justify-between">
             <span className="font-medium">{product.name}</span>
             <span className="font-semibold">${product.price?.price}</span>
           </div>
+
           {product.additionalInfoSections && (
             <div
               className="text-sm text-gray-500"
@@ -91,18 +97,20 @@ const ProductList = async ({
               }}
             ></div>
           )}
+
           <button className="rounded-2xl ring-1 ring-lama text-lama w-max py-2 px-4 text-xs hover:bg-lama hover:text-white">
             Add to Cart
           </button>
         </Link>
       ))}
-      {searchParams?.cat || searchParams?.name ? (
+
+      {(searchParams?.cat || searchParams?.name) && (
         <Pagination
           currentPage={res.currentPage || 0}
           hasPrev={res.hasPrev()}
           hasNext={res.hasNext()}
         />
-      ) : null}
+      )}
     </div>
   );
 };
