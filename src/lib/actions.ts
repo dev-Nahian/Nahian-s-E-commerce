@@ -14,19 +14,19 @@ export const updateUser = async (formData: FormData) => {
 
   console.log(username)
 
-  try {
-    const response = await wixClient.members.updateMember(id, {
-      contact: {
-        firstName: firstName || undefined,
-        lastName: lastName || undefined,
-        phones: phone ? [phone] : undefined,
-      },
-      loginEmail: email || undefined,
-      profile: { nickname: username || undefined },
-    });
+  // try {
+  //   const response = await wixClient.members.updateMember(id, {
+  //     contact: {
+  //       firstName: firstName || undefined,
+  //       lastName: lastName || undefined,
+  //       phones: phone ? [phone] : undefined,
+  //     },
+  //     loginEmail: email || undefined,
+  //     profile: { nickname: username || undefined },
+  //   });
 
-    console.log(response)
-  } catch (err) {
-    console.log(err);
-  }
+  //   console.log(response)
+  // } catch (err) {
+  //   console.log(err);
+  // }
 };
